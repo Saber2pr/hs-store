@@ -6,24 +6,25 @@ data State = State {
 } deriving (Show)
 
 data Action = Action {
-    name :: String
+    name    :: String
   , payload :: Integer
-}
+} deriving (Show)
 
 class Store s where
-  dispatch :: s -> IO ()
+  dispatch :: s -> (State -> IO ()) -> IO ()
   increase :: Integer -> s -> s
-  reducer :: s -> Action -> s
+  reducer  :: s -> Action -> s
 
 instance Store State where
-  dispatch    = print.count
-  increase n  = State.(+n).count
-  reducer s a = case name a of
+  dispatch s f = f s
+  increase n   = State.(+n).count
+  reducer s a  = case name a of
     "add" -> increase (payload a) s
     _     -> s
 
 main :: IO ()
-main = dispatch $ (reducer initialState action) -- 2
+main = dispatch (reducer initialState action) listener
   where
     initialState = State 0
-    action = Action "add" 2
+    action       = Action "add" 2
+    listener     = print.count
