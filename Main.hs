@@ -12,6 +12,13 @@ data Action = Action {
   , payloadInt :: Integer
 } deriving (Show)
 
+class Store s where
+  createStore :: Monad m => (s -> m ()) -> Action -> s -> m s
+  reducer     :: s -> Action -> s
+
+  increase    :: Integer -> s -> s
+  update      :: String -> s -> s
+
 instance Store State where
   createStore l a s  = do
     l nextState
@@ -27,13 +34,6 @@ instance Store State where
   increase n s = State ((+n) $ count s) $ message s
   update   m s = State (count s) m
 
-class Store s where
-  createStore :: Monad m => (s -> m ()) -> Action -> s -> m s
-  reducer  :: s -> Action -> s
-
-  increase :: Integer -> s -> s
-  update   :: String -> s -> s
-
 main :: IO State
 main = dispatch action_add initialState
    >>= dispatch action_set
@@ -41,9 +41,9 @@ main = dispatch action_add initialState
    >>= dispatch action_add
    >>= dispatch action_add
   where
-    initialState = State 0 ""
+    initialState = State 0 "null"
 
-    action_add   = Action "add" ""            2
+    action_add   = Action "add" "hello"       2
     action_set   = Action "set" "hello redux" 0
 
     listener     = print
